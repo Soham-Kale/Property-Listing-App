@@ -1,68 +1,68 @@
 import { View, Text, ScrollView, Image, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
-import { useAuth, useSignUp } from '@clerk/expo';
+import { useAuth, useSignIn, useSignUp } from '@clerk/expo';
 import { Link, useRouter } from 'expo-router';
+import signUp from './sign-up';
 
 export default function SignIn() {
 
-    const { signUp, errors, fetchStatus } = useSignUp();
+    const { signIn, errors, fetchStatus } = useSignIn();
     const { isSignedIn } = useAuth();
 
     const router = useRouter();
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [code, setCode] = useState("");
 
     const isLoading = fetchStatus === 'fetching';
 
-    if(signUp.status === "complete" || isSignedIn) {
-        return null;
-    }
 
-    const onSignUpPress = async() => {
-        const { error } = await signUp.password({
+    const onSignInPress = async() => {
+        const { error } = await signIn.password({
             emailAddress: email,
             password,
-            firstName,
-            lastName,
         });
 
         if(error) {
             alert(error.message);
-            // console.error(JSON.stringify(error.message, null, 2));
             return;
         }
 
-        if(!error) {
-            await signUp.verifications.sendEmailCode();
+        if (signIn.status === "complete") {
+            await signIn.finalize({
+                navigate: ({ session, decorateUrl }) => {
+                if (session?.currentTask) {
+                    console.log(session?.currentTask);
+                    return;
+                }
+                const url = decorateUrl("/");
+                router.replace(url as any);
+                },
+            });
+        } else if(signIn.status === "needs_second_factor" ) {
+            await signIn.mfa.sendPhoneCode();
+        }  else if(signIn.status === "needs_client_trust") {
+            const emailFactor = signIn.supportedSecondFactors.find(
+                (factor) => factor.strategy === "email_code"
+            );
+
+            if(emailFactor) {
+                await signIn.mfa.sendEmailCode();
+            }
+        }
+        else {
+            console.error("Sign-in attempt not complete:", signIn);
         }
     };
 
-    // const onVerifyPress = async() => {
-    //     await signUp.verifications.verifyEmailCode({
-    //         code,
-    //     })
-
-    //     if(signUp.status === 'complete') {
-    //         await signUp.finalize({
-    //             navigate: ({ decorateUrl }) => {
-    //                 const url = decorateUrl("/");
-    //                 router.replace(url as any)
-    //             }
-    //         })
-    //     }
-    // };
-
     const onVerifyPress = async () => {
-        await signUp.verifications.verifyEmailCode({
-        code,
+        await signIn.mfa.verifyEmailCode({
+            code,
         });
 
-        if (signUp.status === "complete") {
-            await signUp.finalize({
+        if (signIn.status === "complete") {
+            await signIn.finalize({
                 navigate: ({ session, decorateUrl }) => {
                 if (session?.currentTask) {
                     console.log(session?.currentTask);
@@ -73,15 +73,11 @@ export default function SignIn() {
                 },
             });
         } else {
-        console.error("Sign-up attempt not complete:", signUp);
+        console.error("Sign-in attempt not complete:", signIn);
         }
     };
 
-    if(
-        signUp.status === 'missing_requirements' &&
-        signUp.unverifiedFields.includes('email_address') &&
-        signUp.missingFields.length === 0
-    ) {
+    if(signIn.status === 'needs_client_trust') {
         return (
             <View className='flex-1 justify-center px-6 py-12'>
                 <Image
@@ -122,7 +118,7 @@ export default function SignIn() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => signUp.verifications.sendEmailCode()}
+                    onPress={() => signIn.mfa.sendEmailCode()}
                     className='py-2'
                 >
                     {isLoading ? (
@@ -148,28 +144,8 @@ export default function SignIn() {
                     resizeMode='contain'
                 />
 
-                <Text className='text-3xl font-bold text-gray-800 mb-2'>Create Account</Text>
-                <Text className='text-gray-500 mb-2'>Find your dream home today</Text>
-
-                <View className='flex-row gap-3 mb-4'>
-                    <TextInput 
-                        className='flex-1 border border-gray-300 px-4 py-3 rounded-xl'
-                        placeholder='First name'
-                        value={firstName}
-                        onChangeText={setFirstName}
-                        placeholderTextColor="#9CA3AF"
-                        autoCapitalize='words'
-                    />
-
-                    <TextInput 
-                        className='flex-1 border border-gray-300 px-4 py-3 rounded-xl'
-                        placeholder='Last name'
-                        value={lastName}
-                        onChangeText={setLastName}
-                        placeholderTextColor="#9CA3AF"
-                        autoCapitalize='words'
-                    />
-                </View>
+                <Text className='text-3xl font-bold text-gray-800 mb-2'>Welcome Back</Text>
+                <Text className='text-gray-500 mb-2'>Sign in to your account</Text>
 
                 <TextInput 
                     className='w-full border border-gray-300 px-4 py-3 rounded-xl mb-4'
@@ -180,9 +156,9 @@ export default function SignIn() {
                     keyboardType='email-address'
                     autoCapitalize='none'
                 />
-                {errors.fields.emailAddress && (
+                {errors.fields.identifier && (
                     <Text className='text-red-500 mb-4'>
-                        {errors.fields.emailAddress.message}
+                        {errors.fields.identifier.message}
                     </Text>
                 )}
 
@@ -201,21 +177,21 @@ export default function SignIn() {
                 )}
 
                 <TouchableOpacity
-                    onPress={onSignUpPress}
+                    onPress={onSignInPress}
                     disabled={isLoading}
                     className='w-full py-4 bg-blue-600 rounded-xl items-center mb-4'
                 >
                     {isLoading ? (
                         <ActivityIndicator color="white"/>
                     ): (
-                        <Text className='text-white font-bold text-base'> Sign Up</Text>
+                        <Text className='text-white font-bold text-base'> Sign In</Text>
                     )}
                 </TouchableOpacity>
 
                 <View className='flex-row justify-center'>
-                    <Text className='text-gray-500'>Already have an account? </Text>
-                        <Link href="/(auth)/sign-in">
-                            <Text className='text-blue-500 font-semibold'>Sign In</Text>
+                    <Text className='text-gray-500'>Don&apos;t have an account? </Text>
+                        <Link href="/(auth)/sign-up">
+                            <Text className='text-blue-500 font-semibold'>Sign Up</Text>
                         </Link>
                 </View>
 
