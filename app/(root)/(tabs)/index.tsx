@@ -1,4 +1,5 @@
 import FeaturedCard from '@/components/FeaturedCard';
+import PropertyCard from '@/components/PropertyCard';
 import { supabase } from '@/lib/supabase';
 import { Property } from '@/types';
 import { useAuth, useUser } from '@clerk/expo';
@@ -135,7 +136,7 @@ const HomeScreen = () => {
                 }
                 renderItem={({item}) => (
                     <View className='px-5'>
-                        <Text>{item.title}</Text>
+                        <PropertyCard property={item}/>
                     </View>
                 )}
                 ListEmptyComponent={
