@@ -31,7 +31,11 @@ export default function PropertyCard({
             }}
         >
             <Image
-                source={{ uri: property.images[0] }}
+                source={
+                    property.images.length > 0
+                    ? { uri: property.images[0] }
+                    : require("@/assets/images/kribb.png")
+                }
                 className='w-28 h-28'
                 resizeMode='cover'
             />
@@ -51,8 +55,9 @@ export default function PropertyCard({
                     <Text className="text-xs text-gray-500" numberOfLines={1}>
                         {property.city}
                     </Text>
+                    </View>
 
-                    <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center justify-between mt-4">
                         <Text className="text-blue-600 font-bold text-sm">
                             {formatPrice(property.price)}
                         </Text>
@@ -83,7 +88,6 @@ export default function PropertyCard({
                             </View>
 
                         </View>
-                    </View>
                     </View>
                 </View>
             </View>
