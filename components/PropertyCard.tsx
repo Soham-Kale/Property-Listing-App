@@ -50,11 +50,10 @@ export default function PropertyCard({
                     </Text>
 
                     <View className="flex-row items-center gap-1">
-                    <Ionicons name="location-outline" size={11} color="#6B7280" />
-
-                    <Text className="text-xs text-gray-500" numberOfLines={1}>
-                        {property.city}
-                    </Text>
+                        <Ionicons name="location-outline" size={11} color="#6B7280" />
+                        <Text className="text-xs text-gray-500" numberOfLines={1}>
+                            {property.city}
+                        </Text>
                     </View>
 
                     <View className="flex-row items-center justify-between mt-4">
@@ -86,12 +85,10 @@ export default function PropertyCard({
                                 {property.area_sqft} ft²
                                 </Text>
                             </View>
-
                         </View>
                     </View>
                 </View>
             </View>
-
         </TouchableOpacity>
     )
 }

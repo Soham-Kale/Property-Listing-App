@@ -28,7 +28,6 @@ const FeaturedCard = ({ property }: { property: Property }) => {
                     ? { uri: property.images[0] }
                     : require("@/assets/images/kribb.png")
                 }
-                // source={{ uri: property.images[0] }}
                 className='w-full h-44'
                 resizeMode='cover'
             />
@@ -41,9 +40,9 @@ const FeaturedCard = ({ property }: { property: Property }) => {
 
             {/* Sold Badge */}
             {property.is_sold && (
-            <View className="absolute top-3 right-3 bg-red-500 px-3 py-1 rounded-full">
-                <Text className="text-xs font-semibold text-white">Sold</Text>
-            </View>
+                <View className="absolute top-3 right-3 bg-red-500 px-3 py-1 rounded-full">
+                    <Text className="text-xs font-semibold text-white">Sold</Text>
+                </View>
             )}
 
             <View className='p-4'>
