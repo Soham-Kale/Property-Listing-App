@@ -42,6 +42,16 @@ export function useSavedProperty(
 
             setIsSaved(false);
             onUnSave?.();
-        } 
-    }
+        } else {
+            await authSupabase.from("saved_properties").insert({
+                user_clerk_id: userId,
+                property_id: propertyId,
+            })
+            setIsSaved(true);
+        }
+
+        setSaveLoading(false);
+    };
+
+    return { isSaved, toggleSave, saveLoading };
 }
