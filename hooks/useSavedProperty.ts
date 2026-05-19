@@ -49,7 +49,6 @@ export function useSavedProperty(
             })
             setIsSaved(true);
         }
-
         setSaveLoading(false);
     };
 
