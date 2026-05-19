@@ -9,7 +9,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useFilterStore, PropertyType } from "@/store/filterStore";
-import { formatPrice } from "@/lib/utils";
 
 const TYPES: { label: string; value: PropertyType }[] = [
     { label: "All", value: null },

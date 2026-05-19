@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSavedProperty } from '@/hooks/useSavedProperty';
 import { formatPrice } from '@/lib/utils';
+import { WebView } from 'react-native-webview';
 
 const { width } = Dimensions.get('window');
 
@@ -57,6 +58,10 @@ export default function PropertyDetails() {
             </View>
         )
     }
+
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${
+        property.longitude - 0.003}%2C${ property.latitude - 0.003}%2C${ property.longitude + 0.003}%2C${
+            property.latitude + 0.003}&layer=mapnik&marker=${property.latitude}%2C${property.longitude}`;
 
     const isLongDesc = (property.description?.length ?? 0) > 150;
     const displayDesc =
@@ -199,6 +204,34 @@ export default function PropertyDetails() {
                             </Text>
                         </TouchableOpacity>
                     )}
+
+                    <Text className='text-base font-bold text-gray-900 mb-2 mt-5'>
+                        Location
+                    </Text>
+
+                    <View className="flex-row items-center gap-2 mb-4">
+                        <Ionicons name="location-outline" size={16} color="#6B7280" />
+                        <Text className="text-gray-500 text-sm flex-1">
+                            {property.address}, {property.city}
+                        </Text>
+                    </View>
+
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        className='rounded-2xl overflow-hidden mb-6'
+                        style={{
+                            height: 200,
+                            // borderRadius: 12,
+                            // overflow: 'hidden',
+                        }}
+                    >
+                        <WebView
+                            source={{ uri: mapUrl }}
+                            style={{ flex: 1 }}
+                            scrollEnabled={false}
+                            pointerEvents="none"
+                        />
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </View>
