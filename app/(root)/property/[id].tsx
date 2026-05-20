@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, FlatList, TouchableOpacity, Image, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
+import { View, Text, ScrollView, FlatList, TouchableOpacity, Image, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Linking, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/expo';
@@ -11,8 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSavedProperty } from '@/hooks/useSavedProperty';
 import { formatPrice } from '@/lib/utils';
 import { WebView } from 'react-native-webview';
+import ImageViewing from 'react-native-image-viewing';
 
 const { width } = Dimensions.get('window');
+
+const ADMIN_PHONE = "7721027579";
 
 export default function PropertyDetails() {
 
@@ -45,6 +48,51 @@ export default function PropertyDetails() {
     const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         const index = Math.round(e.nativeEvent.contentOffset.x / width);
         setActiveIndex(index);
+    };
+
+    const handleContactAgent = () => {
+        const message = `Hi! I'm interested in the property: ${property?.title}`;
+
+        const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(
+            message
+        )}`;
+
+        Linking.openURL(url);
+    };
+
+    const handleMarkSold = () => {
+        Alert.alert("Mark as Sold", "Are you sure?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Mark Sold",
+                onPress: async () => {
+                    await authSupabase
+                    .from("properties")
+                    .update({ is_sold: true })
+                    .eq("id", id);
+
+                    setProperty((prev) => prev ? { ...prev, is_sold: true } : prev);
+                },
+            },
+        ]);
+    };
+
+    const handleDelete = () => {
+        Alert.alert("Delete Property", "Are you sure?", [
+            { text: "Cancel", style: "cancel" },
+                {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                    await authSupabase
+                    .from("properties")
+                    .delete()
+                    .eq("id", id);
+
+                    router.replace("/(root)/(tabs)");
+                },
+            },
+        ]);
     };
 
     useEffect(() => {
@@ -217,13 +265,20 @@ export default function PropertyDetails() {
                     </View>
 
                     <TouchableOpacity
+                        onPress={() =>
+                            router.push({
+                                pathname: "/(root)/property/map",
+                                params: {
+                                latitude: property.latitude,
+                                longitude: property.longitude,
+                                title: property.title,
+                                address: `${property.address}, ${property.city}`,
+                                },
+                            })
+                        }
                         activeOpacity={0.9}
                         className='rounded-2xl overflow-hidden mb-6'
-                        style={{
-                            height: 200,
-                            // borderRadius: 12,
-                            // overflow: 'hidden',
-                        }}
+                        style={{ height: 200 }}
                     >
                         <WebView
                             source={{ uri: mapUrl }}
@@ -231,9 +286,53 @@ export default function PropertyDetails() {
                             scrollEnabled={false}
                             pointerEvents="none"
                         />
+
+                        <View className='absolute bottom-3 right-3 bg-white/50 px-3 py-1 rounded-full items-center flex-row gap-1'>
+                            <Ionicons name='expand-outline' size={12} color="374151"/>
+                            <Text className='text-gray-600 text-xs font-medium'>
+                                Tap to expand
+                            </Text>
+                        </View>
                     </TouchableOpacity>
+
+                    <TouchableOpacity 
+                    onPress={handleContactAgent}
+                    className='flex-row items-center justify-center bg-green-600 gap-2 py-4 rounded-2xl mb-4'>
+                        <Ionicons name='logo-whatsapp' size={20} color="white"/>
+                        <Text className='text-white font-bold text-base'>
+                            Contact Agent
+                        </Text>
+                    </TouchableOpacity>
+
+                    {isAdmin && (
+                        <View className='flex-row gap-3'>
+                            {!property.is_sold && (
+                                <TouchableOpacity 
+                                    onPress={handleMarkSold}
+                                    className='flex-1 flex-row items-center justify-center gap-2
+                                    bg-amber-50 py-4 rounded-2xl border border-amber-200'>
+                                    <Ionicons name='checkmark-circle-outline' size={18} color="#"/>
+                                    <Text className='text-amber-600 font-semibold'>Mark Sold</Text>
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity 
+                                onPress={handleDelete}
+                                className='flex-1 flex-row items-center justify-center gap-2
+                                bg-red-50 py-4 rounded-2xl border border-red-200'>
+                                <Ionicons name='trash-outline' size={18} color="#"/>
+                                <Text className='text-red-500 font-semibold'>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                        )}
                 </View>
             </ScrollView>
+
+            <ImageViewing
+                images={property.images.map((uri) => ({ uri }))}
+                imageIndex={activeIndex}
+                visible={imageViewerVisible}
+                onRequestClose={() => setImageViewerVisible(false)}
+            />
         </View>
     )
 }
