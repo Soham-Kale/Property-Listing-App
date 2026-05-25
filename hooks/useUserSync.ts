@@ -15,16 +15,17 @@ export const useUserSync = () => {
 
     const syncUser = async() => {
         const { data } = await authSupabase
-        .from("user")
+        .from("users")
         .select("clerk_id, is_admin")
         .eq("clerk_id", user!.id)
         .single();
 
         if(data) {
-            // User exists - just sync isAdmin to Zustand
             setIsAdmin(data.is_admin ?? false);
             return;
         }
+
+        const isAdminFromMeta = user!.unsafeMetadata?.isAdmin === true;
 
         const { data: newUser } = await authSupabase
             .from("users")
@@ -34,6 +35,7 @@ export const useUserSync = () => {
             first_name: user!.firstName,
             last_name: user!.lastName,
             avatar_url: user!.imageUrl,
+            is_admin: isAdminFromMeta,
             })
             .select("is_admin")
             .single();
