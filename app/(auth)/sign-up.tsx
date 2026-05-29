@@ -15,6 +15,7 @@ export default function SignUp() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [code, setCode] = useState("");
+    const [isAdminRole, setIsAdminRole] = useState(false);
 
     const isLoading = fetchStatus === 'fetching';
 
@@ -28,6 +29,7 @@ export default function SignUp() {
             password,
             firstName,
             lastName,
+            unsafeMetadata: { isAdmin: isAdminRole },
         });
 
         if(error) {
@@ -171,8 +173,8 @@ export default function SignUp() {
                     </Text>
                 )}
 
-                <TextInput 
-                    className='w-full border border-gray-300 px-4 py-3 rounded-xl mb-6'
+                <TextInput
+                    className='w-full border border-gray-300 px-4 py-3 rounded-xl mb-4'
                     placeholder='Password'
                     value={password}
                     onChangeText={setPassword}
@@ -184,6 +186,22 @@ export default function SignUp() {
                         {errors.fields.password.message}
                     </Text>
                 )}
+
+                <Text className='text-gray-600 mb-2 font-medium'>I am signing up as</Text>
+                <View className='flex-row mb-6 rounded-xl overflow-hidden border border-gray-300'>
+                    <TouchableOpacity
+                        onPress={() => setIsAdminRole(false)}
+                        className={`flex-1 py-3 items-center ${!isAdminRole ? 'bg-blue-600' : 'bg-white'}`}
+                    >
+                        <Text className={`font-semibold ${!isAdminRole ? 'text-white' : 'text-gray-600'}`}>User</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setIsAdminRole(true)}
+                        className={`flex-1 py-3 items-center ${isAdminRole ? 'bg-blue-600' : 'bg-white'}`}
+                    >
+                        <Text className={`font-semibold ${isAdminRole ? 'text-white' : 'text-gray-600'}`}>Admin</Text>
+                    </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
                     onPress={onSignUpPress}
