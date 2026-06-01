@@ -353,14 +353,14 @@ export default function PropertyDetails() {
                     </TouchableOpacity>
 
                     {emiOpen && (() => {
-                        const P = Number(emiLoan) || 0;
-                        const r = (Number(emiRate) || 0) / 12 / 100;
-                        const n = (Number(emiTenure) || 0) * 12;
+                        const P = Math.max(0, Number(emiLoan) || 0);
+                        const r = Math.max(0, (Number(emiRate) || 0) / 12 / 100);
+                        const n = Math.max(0, Math.floor((Number(emiTenure) || 0) * 12));
                         const emi = n === 0 ? 0
                             : r === 0 ? P / n
                             : (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-                        const total = r === 0 && n > 0 ? P : emi * n;
-                        const interest = total - P;
+                        const total = n === 0 ? 0 : r === 0 ? P : emi * n;
+                        const interest = n === 0 ? 0 : total - P;
                         return (
                             <View className='bg-white border border-gray-200 rounded-2xl p-4 mb-4'>
                                 <View className='gap-3 mb-4'>

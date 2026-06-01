@@ -76,10 +76,11 @@ export default function MyListingsScreen() {
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Mark Sold', onPress: async () => {
-                        const { error } = await authSupabase
+                        const { data, error } = await authSupabase
                             .from('properties').update({ is_sold: true })
-                            .eq('id', property.id).eq('owner_clerk_id', userId);
-                        if (!error) fetchListings();
+                            .eq('id', property.id).eq('owner_clerk_id', userId)
+                            .select();
+                        if (!error && data && data.length > 0) fetchListings();
                         else Alert.alert('Error', 'Failed to mark as sold. Please try again.');
                     }
                 },
